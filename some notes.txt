@@ -1,0 +1,249 @@
+Wykrywanie i korekcja błędu w macierzy za pomocą słowa kodowego
+Wstęp
+Ten projekt demonstruje, jak wykryć i naprawić pojedynczy błąd w 8x8 macierzy danych za pomocą kodu Hamminga. 
+Kod Hamminga pozwala na efektywne wykrywanie i korygowanie pojedynczych błędów w danych binarnych. 
+Proces opiera się na wyliczaniu bitów parzystości, które tworzą słowo kodowe, i wykorzystaniu ich do identyfikacji pozycji błędu.
+
+Poniżej znajdziesz szczegółowy przewodnik po krokach, które wyjaśniają, jak zidentyfikować i poprawić błędny bit w macierzy.
+
+Co to jest macierz i jak jest tworzona?
+Macierz to prostokątny układ danych ułożonych w wierszach i kolumnach. W tym projekcie macierz danych to 8x8 tablica binarna, składająca się z 64 bitów (0 lub 1).
+
+Struktura macierzy
+Macierz w tym projekcie ma 8 wierszy i 8 kolumn, co oznacza, że w każdym wierszu znajduje się 8 bitów. Całkowita liczba elementów w macierzy to:
+
+8 wierszy × 8 kolumn = 64 bity
+Jak jest tworzona macierz?
+Automatyczna inicjalizacja danych:
+Program generuje dane binarne (0 i 1) w taki sposób, że wartości w macierzy są ułożone naprzemiennie:
+
+0, 1, 0, 1, 0, 1, 0, 1, ...
+Dzięki temu uzyskujemy regularny wzór, co ułatwia wykrywanie błędów w danych.
+Zapis danych w macierzy:
+Wygenerowane dane są układane w 8 wierszach po 8 elementów, tworząc układ:
+
+0 1 0 1 0 1 0 1
+0 1 0 1 0 1 0 1
+...
+Przykład macierzy początkowej:
+
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+
+Czym są bity parzystości?
+Bity parzystości to dodatkowe bity dodawane do danych binarnych w celu wykrywania (a czasem korekcji) błędów. 
+Ich zadaniem jest kontrola liczby bitów 1 w zbiorze danych, aby określić, czy liczba ta jest parzysta, czy nieparzysta. 
+
+Na tej podstawie wyróżniamy dwa typy parzystości:
+
+Parzystość parzysta (even parity)
+Bit parzystości jest ustawiany tak, aby całkowita liczba "1" (łącznie z bitem parzystości) była parzysta.
+Przykład:
+Dane: 1011 (3 jedynki, nieparzysta)
+Bit parzystości: 1
+Dane z bitem parzystości: 10111
+
+Parzystość nieparzysta (odd parity)
+Bit parzystości jest ustawiany tak, aby całkowita liczba "1" (łącznie z bitem parzystości) była nieparzysta.
+Przykład:
+Dane: 1011 (3 jedynki, nieparzysta)
+Bit parzystości: 0
+Dane z bitem parzystości: 10110
+
+Bity parzystości są podstawą kodu Hamminga, umożliwiając zarówno wykrywanie, jak i korekcję błędów w danych.
+
+Co to jest maska binarna?
+Maska binarna to liczba binarna używana do wybierania określonych bitów spośród większego zbioru danych. 
+W projekcie maski binarne służą do wyznaczania, które bity z macierzy są brane pod uwagę przy obliczaniu konkretnych bitów parzystości.
+
+Jak działa maska binarna?
+Maska binarna działa poprzez zastosowanie operacji AND na pozycji każdego bitu w danych.
+ Jeśli bit w masce wynosi 1, to bit danych w tej pozycji jest uwzględniany. 
+ Jeśli bit w masce wynosi 0, to bit danych w tej pozycji jest ignorowany.
+
+Przykład:
+
+Maska: 0b000001 (dziesiętnie: 1)
+Uwzględnia wszystkie pozycje, w których pierwszy bit (najmniej znaczący) wynosi 1.
+Maska: 0b000010 (dziesiętnie: 2)
+Uwzględnia wszystkie pozycje, w których drugi bit wynosi 1.
+Maska: 0b000100 (dziesiętnie: 4)
+Uwzględnia wszystkie pozycje, w których trzeci bit wynosi 1.
+Przykład użycia maski binarnej w obliczaniu parzystości:
+Dane:
+
+0 1 0 1 0 1 0 1 (pozycje: 0, 1, 2, 3, 4, 5, 6, 7)
+Maska binarna: 0b000001 (pierwszy bit = 1).
+Sprawdzane pozycje (tam, gdzie pierwszy bit wynosi 1):
+
+1, 3, 5, 7
+Dla tych pozycji sprawdzana jest liczba 1. Jeśli liczba jedynek jest nieparzysta, bit parzystości wynosi 1. Jeśli jest parzysta, bit parzystości wynosi 0.
+
+Jak działa korekcja błędów?
+1. Słowo kodowe
+Słowo kodowe składa się z bitów parzystości (p0, p1, p2, ..., p6). Każdy bit parzystości jest obliczany na podstawie określonych pozycji bitów w macierzy, zgodnie z maską binarną.
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+2. Syndrom błędu
+
+Jak działa syndrom?
+Syndrom powstaje poprzez porównanie:
+
+Odebranego słowa kodowego (z potencjalnym błędem) z
+Nowo obliczonym słowem kodowym na podstawie odebranych danych.
+Porównanie odbywa się przy pomocy operacji logicznej XOR (exclusive OR):
+
+XOR zwraca 1, jeśli porównywane bity są różne.
+XOR zwraca 0, jeśli porównywane bity są takie same.
+Wynik tej operacji to syndrom, który jest liczbą binarną reprezentującą różnicę między odebranym a obliczonym słowem kodowym.
+
+Znaczenie syndromu
+Syndrom pełni dwie podstawowe funkcje:
+
+Wykrywanie błędu:
+
+Jeśli syndrom wynosi 0 (np. 0000000), oznacza to brak błędów w danych. Odebrane słowo kodowe jest identyczne z obliczonym słowem kodowym.
+Jeśli syndrom jest różny od 0 (np. 0001010), oznacza to, że wystąpił błąd.
+Lokalizacja błędu:
+
+Wartość syndromu (w systemie dziesiętnym) wskazuje dokładną pozycję błędnego bitu.
+Pozycja ta może znajdować się:
+W danych macierzy.
+W bitach parzystości samego słowa kodowego.
+Przykład działania syndromu
+1. Dane początkowe (bez błędu):
+Macierz danych:
+
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+Oryginalne słowo kodowe:
+
+p0=0, p1=0, p2=0, p3=0, p4=0, p5=0, p6=0
+2. Wprowadzenie błędu:
+W macierzy danych bit na pozycji 10 (indeks 10) zmienia się z 0 na 1.
+
+Macierz danych z błędem:
+
+0 1 0 1 0 1 0 1 
+0 1 {1} 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+3. Obliczenie nowego słowa kodowego:
+Po wprowadzeniu błędu program ponownie oblicza słowo kodowe na podstawie aktualnych danych.
+
+Nowe słowo kodowe:
+p0=1, p1=1, p2=0, p3=0, p4=0, p5=0, p6=0
+4. Porównanie słów kodowych:
+Odebrane słowo kodowe (oryginalne) to:
+
+p0=0, p1=0, p2=0, p3=0, p4=0, p5=0, p6=0
+Program porównuje je z nowo obliczonym słowem kodowym:
+
+p0=1, p1=1, p2=0, p3=0, p4=0, p5=0, p6=0
+Operacja XOR dla każdego bitu:
+
+Syndrom = Nowe słowo kodowe XOR Oryginalne słowo kodowe
+Syndrom = 1100000 (binarnie)
+5. Interpretacja syndromu:
+Wartość syndromu w systemie dziesiętnym wynosi 10.
+Wartość ta wskazuje, że bit z błędem znajduje się na pozycji 10 (licząc od indeksu 0) w macierzy danych.
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+3. Korekcja błędu
+Jeśli syndrom różni się od zera, jego wartość wskazuje dokładną pozycję błędnego bitu w macierzy danych.
+
+Błędny bit zostaje naprawiony przez zmianę jego wartości (0 → 1 lub 1 → 0).
+
+Krok po kroku: Jak znaleźć i naprawić błąd w macierzy
+Krok 1: Generowanie macierzy danych
+
+Macierz danych jest generowana automatycznie jako 8x8 macierz (64 bity), gdzie wartości na przemian wynoszą 0 i 1.
+
+Przykład macierzy początkowej:
+
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+0 1 0 1 0 1 0 1 
+
+Krok 2: Obliczanie słowa kodowego
+Słowo kodowe (p0, p1, p2, ..., p6) jest obliczane na podstawie bitów parzystości.
+
+Przykładowe słowo kodowe:
+p0=0, p1=0, p2=0, p3=0, p4=0, p5=0, p6=0
+
+Krok 3: Wprowadzenie błędu
+Celowo wprowadzamy błąd w macierzy danych, zmieniając wartość bitu na wybranej pozycji.
+
+Krok 4: Wykrycie błędu za pomocą syndromu
+Po wprowadzeniu błędu w macierzy, program przechodzi do etapu detekcji błędu. W tym celu oblicza syndrom, który wskazuje pozycję błędnego bitu w macierzy. Proces ten składa się z kilku kroków:
+
+1. Obliczenie nowego słowa kodowego
+Program oblicza nowe słowo kodowe na podstawie aktualnej macierzy danych (z potencjalnym błędem). 
+Obliczenia bitów parzystości odbywają się tak samo, jak w przypadku tworzenia pierwotnego słowa kodowego, z wykorzystaniem masek binarnych:
+
+p0: Oblicza parzystość dla pozycji, gdzie pierwszy bit w masce wynosi 1 (np. 1, 3, 5, 7, ...).
+p1: Oblicza parzystość dla pozycji, gdzie drugi bit w masce wynosi 1 (np. 2, 3, 6, 7, ...).
+Analogicznie dla kolejnych bitów parzystości: p2, p3, p4, p5, p6.
+Nowo wyliczone słowo kodowe reprezentuje aktualny stan danych, uwzględniając błąd, jeśli wystąpił.
+
+2. Porównanie nowego słowa kodowego z oryginalnym
+Program porównuje nowo obliczone słowo kodowe z oryginalnym (zapisanym przed wprowadzeniem błędu). Każdy bit słowa kodowego jest porównywany:
+
+Jeśli bit nowego słowa kodowego różni się od odpowiedniego bitu w oryginalnym słowie kodowym, oznacza to, że w danych wystąpił błąd.
+3. Obliczenie syndromu
+Syndrom to różnica (wynik operacji XOR) między:
+
+Nowo obliczonym słowem kodowym (z błędem) a
+Oryginalnym słowem kodowym (bez błędu).
+Przykład:
+
+Oryginalne słowo kodowe: p0=0, p1=0, p2=0, p3=0, p4=0, p5=0, p6=0
+Nowe słowo kodowe (z błędem): p0=1, p1=1, p2=0, p3=0, p4=0, p5=0, p6=0
+Obliczenie syndromu:
+
+Syndrom = Nowe słowo kodowe XOR Oryginalne słowo kodowe
+Syndrom = 1100000 (binarnie) → 10 (dziesiętnie)
+Interpretacja syndromu:
+
+Syndrom wskazuje pozycję błędnego bitu w macierzy danych lub w samym słowie kodowym.
+Wartość syndromu w systemie dziesiętnym (np. 10) bezpośrednio odpowiada indeksowi bitu z błędem w macierzy danych.
+4. Lokalizacja błędu na podstawie syndromu
+Program sprawdza wartość syndromu:
+
+Jeśli syndrom wynosi 0: Oznacza to brak błędów w danych – nowe słowo kodowe jest identyczne z oryginalnym.
+Jeśli syndrom jest różny od 0: Jego wartość binarna wskazuje dokładną pozycję błędnego bitu w macierzy danych.
+Przykład:
+
+Syndrom 10 (dziesiętnie) to 0001010 (binarnie). Wartość ta wskazuje pozycję błędu w macierzy, np. indeks 10 (licząc od 0).
+
+Krok 5: Naprawa błędnego bitu
+Na podstawie syndromu program identyfikuje pozycję błędu i naprawia ją.
+
+Podsumowanie
+Dzięki macierzy, kodowi Hamminga i maskom binarnym możemy w łatwy sposób:
+
+Zorganizować dane binarne.
+Wykrywać i naprawiać pojedyncze błędy, gwarantując integralność informacji.
